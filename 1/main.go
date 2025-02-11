@@ -20,6 +20,7 @@ func main() {
 		for {
 			strs := hash256Encode(fmt.Sprintf("%s%d", username, nonce1))
 			if strs[:4] == "0000" {
+				fmt.Println("当前的随机数是：", nonce1)
 				fmt.Println("当前哈希地址是：", strs)
 				elapsed := time.Since(startTime)
 				fmt.Println(fmt.Sprintf("符合4个0需要的时间为: %d 毫秒", elapsed.Milliseconds()))
@@ -32,11 +33,11 @@ func main() {
 	var (
 		startTime2 = time.Now()
 		nonce2     = 0 //随机数
-
 	)
 	for {
 		strs := hash256Encode(fmt.Sprintf("%s%d", username, nonce2))
 		if strs[:5] == "00000" {
+			fmt.Println("当前的随机数是：", nonce2)
 			fmt.Println("当前哈希地址是：", strs)
 			elapsed := time.Since(startTime2)
 			fmt.Println(fmt.Sprintf("符合5个0需要的时间为: %d 毫秒", elapsed.Milliseconds()))
