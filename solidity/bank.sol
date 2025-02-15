@@ -1,9 +1,11 @@
 pragma solidity <0.9.0;
 
-contract Bank {
+import "./admin.sol";
+
+contract Bank is IBank {
     mapping(address => uint) balances;
-    uint256[3] public topAmounts;
-    address[3] public topDepositors;
+    uint256[3] private topAmounts;
+    address[3] private topDepositors;
 
     address private owner;
 
@@ -13,7 +15,7 @@ contract Bank {
 
     event Received(address sender, uint amount);
 
-    receive() external payable {
+    receive() external payable virtual {
         emit Received(msg.sender, msg.value);
         balances[msg.sender] += msg.value;
         updateTopDepositors(msg.sender, msg.value);
@@ -47,7 +49,10 @@ contract Bank {
         return (topDepositors, topAmounts);
     }
 
-    function withdraw(uint amount, address withdrawAddress) public {
+    function withdraw(
+        uint amount,
+        address withdrawAddress
+    ) public virtual override {
         require(msg.sender == owner, "Insufficient permissions"); //管理员可以转账出去
         payable(withdrawAddress).transfer(amount); // 转账到指定地址
     }
