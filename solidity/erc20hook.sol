@@ -2,16 +2,18 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract ERC20Hook is ERC20 {
-    function transferWithCallback(
-        address recipient,
-        uint256 amount
-    ) public returns (bool) {
-        super.transfer(recipient, amount);
-        if (isContract(recipient)) {
-            ITokenReceiver(recipient).tokensReceived(msg.sender, amount);
-        }
+interface ITokenReceiver {
+    function tokensReceived(address from, uint256 amount) external;
+}
 
+contract ExtendedERC20 is ERC20 {
+    constructor(string memory name, string memory symbol) ERC20(name, symbol) {}
+
+    function transferWithCallback(address to, uint256 amount) public returns (bool) {
+        _transfer(msg.sender, to, amount);
+        if (isContract(to)) {
+            ITokenReceiver(to).tokensReceived(msg.sender, amount);
+        }
         return true;
     }
 
@@ -22,8 +24,4 @@ contract ERC20Hook is ERC20 {
         }
         return size > 0;
     }
-}
-
-interface ITokenReceiver {
-    function tokensReceived(address from, uint256 amount) external;
 }
