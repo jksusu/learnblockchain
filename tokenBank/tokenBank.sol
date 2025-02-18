@@ -28,7 +28,7 @@ contract TokenBank {
 
     function tokensReceived(address from,uint256 amount) external returns (bool) {
         require(address(token) == msg.sender, "Only tokens allowed"); 
-        balances[address(token)][from] += amount;
+        balances[address(token)] += amount;
         emit TokensReceived(from, amount);
         return true;
     }
