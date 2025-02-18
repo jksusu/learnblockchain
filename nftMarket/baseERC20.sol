@@ -7,7 +7,7 @@ interface ITokenReceiver {
     function tokensReceived(address from, uint256 amount) external returns (bool);
 }
 
-contract BaseERC20WithCallBack is ERC20 {
+contract BaseERC20 is ERC20 {
 
     constructor() ERC20("BaseERC20", "BaseERC20") {
         _mint(msg.sender, 100000000 * 10 ** 18);
