@@ -1,112 +1,34 @@
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface ITokenReceiver {
-    function tokensReceived(address from, uint256 amount) external;
-}
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract BaseERC20 {
-    string public name = "BaseERC20";
-    string public symbol = "BERC20";
-    uint8 public decimals;
-    uint256 public totalSupply;
-    mapping(address => uint256) balances;
-    mapping(address => mapping(address => uint256)) allowances;
+contract TokenBank {
+    IERC20 public token;
+    mapping(address => uint256) public balances;
 
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
-
-    //检测某个地址的余额是否足够
-    modifier checkBalances(address _address, uint amount) {
-        require(
-            balances[_address] >= amount,
-            "ERC20: transfer amount exceeds balance"
-        );
+    modifier checkAmount(uint amount) {
+        require(amount > 0, "Amount must be greater than 0");
         _;
     }
 
-    constructor() {
-        decimals = 18;
-        totalSupply = 100000000 * (10 ** uint256(decimals));
-        balances[msg.sender] = totalSupply;
+    constructor(IERC20 _token) {
+        token = _token;
     }
 
-    function balanceOf(address _owner) public view returns (uint256 balance) {
-        return balances[_owner];
+    function deposit(uint256 amount) external checkAmount(amount){
+        token.transferFrom(msg.sender, address(this), amount);
+        balances[msg.sender] += amount;
     }
 
-    function transfer(
-        address _to,
-        uint256 _value
-    ) public checkBalances(msg.sender, _value) returns (bool success) {
-        //判断余额是否足够
-        balances[msg.sender] = balances[msg.sender] - _value;
-        balances[_to] = balances[_to] + _value;
-        emit Transfer(msg.sender, _to, _value);
+    function withdraw(uint256 amount) external checkAmount(amount) {
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        balances[msg.sender] -= amount;
+        token.transfer(msg.sender, amount);
+    }
+
+    function tokensReceived(address from,uint256 amount) external returns (bool) {
+        balances[address(token)][from] += amount;
+        emit TokensReceived(from, amount);
         return true;
-    }
-
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) public returns (bool success) {
-        //检查是否存在权限
-        uint amount = allowances[_from][msg.sender];
-        require(amount >= _value, "ERC20: transfer amount exceeds allowance");
-        require(
-            balances[_from] >= _value,
-            "ERC20: transfer amount exceeds balance"
-        );
-
-        balances[_from] -= _value;
-        balances[_to] += _value;
-
-        allowances[_from][msg.sender] -= _value; // 更新被授权者的额度
-
-        emit Transfer(_from, _to, _value);
-        return true;
-    }
-
-    function approve(
-        address _spender,
-        uint256 _value
-    ) public returns (bool success) {
-        allowances[msg.sender][_spender] = _value;
-        emit Approval(msg.sender, _spender, _value);
-        return true;
-    }
-
-    function allowance(
-        address _owner,
-        address _spender
-    ) public view returns (uint256 remaining) {
-        // write your code here
-        return allowances[_owner][_spender];
-    }
-
-    function transferWithCallback(
-        address _to,
-        uint256 _value
-    ) public returns (bool success) {
-        balances[msg.sender] -= _value;
-        balances[_to] += _value;
-        emit Transfer(msg.sender, _to, _value);
-        if (isContract(_to)) {
-            ITokenReceiver(_to).tokensReceived(msg.sender, _value);
-        }
-        return true;
-    }
-
-    function isContract(address account) internal view returns (bool) {
-        uint256 size;
-        assembly {
-            size := extcodesize(account)
-        }
-        return size > 0;
     }
 }
