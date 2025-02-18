@@ -35,7 +35,7 @@ contract NFTMarket {
         Listing memory listing = listings[tokenId];
         require(listing.price > 0, "NFT not listed");
         require(token.balanceOf(msg.sender) >= listing.price, "Insufficient token balance");
-        token.transferFrom(msg.sender, listing.seller, listing.price);
+        token.transferWithCallback(listing.seller, listing.price);
         nft.safeTransferFrom(listing.seller, msg.sender, tokenId);
         delete listings[tokenId];
     }

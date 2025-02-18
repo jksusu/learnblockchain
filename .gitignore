@@ -2,3 +2,5 @@
 .vscode
 .DS
 .DS_Store
+.deps/
+.states/
