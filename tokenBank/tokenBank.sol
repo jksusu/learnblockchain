@@ -1,6 +1,6 @@
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract TokenBank {
     IERC20 public token;
@@ -27,6 +27,7 @@ contract TokenBank {
     }
 
     function tokensReceived(address from,uint256 amount) external returns (bool) {
+        require(address(token) == msg.sender, "Only tokens allowed"); 
         balances[address(token)][from] += amount;
         emit TokensReceived(from, amount);
         return true;
